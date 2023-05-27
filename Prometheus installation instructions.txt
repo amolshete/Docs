@@ -30,6 +30,10 @@ prometheus --version
 
 sudo mv prometheus.yml /etc/prometheus/prometheus.yml
 
+sudo mv consoles/ /etc/prometheus/
+
+sudo mv console_libraries/ /etc/prometheus/
+
 sudo tee /etc/systemd/system/prometheus.service<<EOF
 paste the prometheus.service content here
 
