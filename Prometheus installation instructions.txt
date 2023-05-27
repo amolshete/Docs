@@ -1,0 +1,90 @@
+
+
+Go to link https://prometheus.io/download/
+Choose the version : wget https://github.com/prometheus/prometheus/releases/download/v2.44.0/prometheus-2.44.0.linux-amd64.tar.gz
+
+Prometheus need user and group to run their services.
+
+sudo groupadd --system prometheus
+sudo useradd -s /sbin/nologin --system -g prometheus prometheus
+
+
+now we will create one directory for prometheus
+
+sudo mkdir /var/lib/prometheus
+
+there is concept call rules we will learn later but for them we need to create 3 directory
+
+sudo mkdir -p /etc/prometheus/rules
+sudo mkdir -p /etc/prometheus/rules.s
+sudo mkdir -p /etc/prometheus/files_sd
+
+
+sudo tar xvf prometheus-2.44.0.linux-amd64.tar.gz
+
+cd prometheus-2.44.0.linux-amd64
+
+sudo mv prometheus promtool /usr/local/bin/
+
+prometheus --version
+
+sudo mv prometheus.yml /etc/prometheus/prometheus.yml
+
+sudo tee /etc/systemd/system/prometheus.service<<EOF
+paste the prometheus.service content here
+
+[Unit]
+Description=Prometheus
+Documentation=https://prometheus.io/docs/introduction/overview/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=prometheus
+Group=prometheus
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/var/lib/prometheus \
+  --web.console.templates=/etc/prometheus/consoles \
+  --web.console.libraries=/etc/prometheus/console_libraries \
+  --web.listen-address=0.0.0.0:9090 \
+  --web.external-url=
+
+SyslogIdentifier=prometheus
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+
+sudo chown -R prometheus:prometheus /etc/prometheus
+sudo chown -R prometheus:prometheus /etc/prometheus/*
+
+sudo chmod -R 775 /etc/prometheus
+sudo chmod -R 775 /etc/prometheus/*
+
+
+sudo chown -R prometheus:prometheus /var/lib/prometheus/
+sudo chown -R prometheus:prometheus /var/lib/prometheus/*
+
+
+sudo systemctl daemon-reload
+sudo systemctl start prometheus
+
+sudo systemctl enable prometheus
+
+sudo systemctl status prometheus
+
+
+
+
+
+
+
+
+
+

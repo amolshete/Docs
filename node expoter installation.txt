@@ -1,0 +1,77 @@
+Node expoter installation
+
+sudo apt-get update
+
+sudo apt-get upgrade
+
+Go to https://prometheus.io/download/
+
+wget the URL
+
+sudo tar -xvf node_exporter-1.5.0.linux-amd64.tar.gz
+
+go inside the folder :- 
+
+cd node_exporter-1.5.0.linux-amd64/
+
+We can also run the node expoter
+
+./node_exporter
+
+Now lets configure prometheus.yml file that will listen this node expoter
+
+Login to prometheus server go to prometheus.yml file (/etc/prometheus)
+
+make the neccessary changes basically add the new target
+
+sudo systemctl stop prometheus
+
+sudo systemctl start prometheus
+
+
+How to run node expoter as service:- 
+
+
+sudo groupadd --system prometheus
+
+sudo useradd -s /sbin/nologin --system -g prometheus prometheus
+
+sudo mkdir /var/lib/node
+
+sudo mv node_exporter /var/lib/node/
+
+
+sudo nano /etc/systemd/system/node.service
+
+[Unit]
+Description=Prometheus Node Exporter
+Documentation=https://prometheus.io/docs/introduction/overview/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=prometheus
+Group=prometheus
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/var/lib/node/node_exporter
+
+SyslogIdentifier=prometheus_node_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+lets make the owner 
+
+sudo chown -R prometheus:prometheus /var/lib/node
+
+sudo chown -R prometheus:prometheus /var/lib/node/*
+ 
+sudo systemctl daemon-reload
+sudo systemctl start node
+sudo systemctl enable node
+sudo systemctl status node
+ 
