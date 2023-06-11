@@ -1,0 +1,83 @@
+GO to prometheus download and download the copy the link of altertmanager package
+
+Make sure you already have configured the prometheus user and prometheus group already configured
+
+sudo wget <package-download-link>
+
+Lets decompress the package
+
+sudo tar xvf <altertmanager-package-name>
+
+from here you can directly start running the alertmanager program but if you close the session then alertmanager will stop
+
+If you are interested to run alertmanager as service then follow further step or for practise purpose you can skip alertmanager as service steps
+
+
+For service creation we will required reference directory
+
+lets create it
+
+sudo mkdir /var/lib/alertmanager
+
+lets move everything from tar file to this new folder
+
+sudo mv * /var/lib/alertmanager/
+
+cd /var/lib/alertmanager/
+
+sudo mkdir data
+
+Here please note I am creating folder with data if you are creating folder with any other name then make sure to change the folder name in service file
+
+lets give permission to prometheus user and group folder 
+sudo chown -R prometheus:prometheus /var/lib/alertmanager
+sudo chown -R prometheus:prometheus /var/lib/alertmanager/*
+sudo chmod -R 755 /var/lib/alertmanager
+sudo chmod -R 755 /var/lib/alertmanager/*
+
+
+Now lets create service file
+
+sudo nano /etc/systemd/system/alertmanager.service
+
+paste the below content:-
+############################################################
+[Unit]
+Description=Prometheus Alert Manager
+Documentation=https://prometheus.io/docs/introduction/overview/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=prometheus
+Group=prometheus
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/var/lib/alertmanager/alertmanager --storage.path="/var/lib/alertmanager/data" --config.file="/var/lib/alertmanager/alertmanager.yml"
+
+SyslogIdentifier=prometheus_alert_manager
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
+############################################################
+
+
+Now lets reload the daemon
+
+sudo systemctl daemon-reload
+
+sudo systemctl start alertmanager
+sudo systemctl enable alertmanager
+
+sudo systemctl status alertmanager
+
+Its runs by default on 9093 
+
+
+
+Further you may check the below link to get most of the alarm query
+
+https://samber.github.io/awesome-prometheus-alerts/rules.html
