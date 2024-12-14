@@ -1,0 +1,137 @@
+RBAC In Kubernetes:
+
+Service Account:
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin
+  namespace: default
+
+Cluster Role:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: admin-role
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["*"]
+
+
+ClusterRoleBinding:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-rolebinding
+subjects:
+  - kind: ServiceAccount
+    name: admin
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+
+General:
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: general-user
+  namespace: default
+
+Cluster role:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: general-user-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps", "extensions"]
+    resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+    verbs: ["get", "list", "watch"]	
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]
+	
+Cluster Role Binding:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: general-user-binding
+subjects:
+  - kind: ServiceAccount
+    name: general-user
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: general-user-role
+  apiGroup: rbac.authorization.k8s.io
+
+
+
+View Only User
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: view-only-user
+  namespace: default
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: view-only-user-role
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+		
+
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: view-only-user-binding
+subjects:
+  - kind: ServiceAccount
+    name: view-only-user
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: view-only-user-role
+  apiGroup: rbac.authorization.k8s.io
+
+
+kubectl create token admin --namespace default
+kubectl create token general-user --namespace default
+kubectl create token view-only-user --namespace default
+
+
+Example kubeconfig file
+
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJTlZpbWdNMlVKTmN3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TkRFeU1UUXdNekV3TUROYUZ3MHpOREV5TVRJd016RTFNRE5hTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUN5K2Y3R2dIQmw1NVFsdFFtYnZUc0R5cElJVHE5WjhISENUK05NV1JCRVBHZWNCbStNM3pDbGxVUWQKQkVTN1NFd2JVTzM1QmpSS3hzZGNzaktQYkd5OTFXL2xXdGNlTk9XVFBqN0dGSm11NEE1ZEk0bkdqZUcyVXlqSApiVFdNMUk5eG91TGZ3TGpKWk1CaXYzbWVOTlNja0JjVjFKZm5KZEtTU1ZlcTBGQXQ2VG8wSndPdHJEZlpDL1Q2CjNEb1NiWWlqM28vemZibE5mSmRYTUZ4S1dlVm1aL0gzNlUzQzNraXlrQkloRTJMODlQMVVxbVh5eW90dWt2V3QKRllLNkloTVgxWkRlbHNKOVRBNkRyT0JBamFnMzVDcW0rcXRYZkJkTUs4d1p4d1YwSzQ0RDNMNEg0NU5vdEt0QgpCRXNUNGExQnllb0o0SDVicktDcTZBSnQxSjhUQWdZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQkJkZXczWVdaZwpkdUx2SzBUdDlwaHBwOUFBTlBtSUtjaEduS2MxWHJhVkFWUDNaa25vOXFIR0JkdFNTY2ljWHhmL2J0NTA3d3lGCmZvL2dzYmJtZ1MzWUZYT0xaRmpEbmJvTm1BTU0reFpkSmQrV0JFakNOMDRoQ3ZjZG1XVjFsdzRoSDVqUnhhZmMKL0tucDhoS01JMzR6NDR5VUdvZFBTQ1l5cldyNE83UGoxYy9VWENiZ2w4ZnJiMWIxMmExQnNFT2UvajJ4SUMzawpORG9sN09Ea0JzNVI0RkM2ZHR5VkVhSlNnNVlOOWZpZGZTZk1CZ1hreTdBT0ZMa3BBYnRoUDJSYzdvOURRSVR3CkljYjBNeHFveE5lNlNjUVBQZWxNT2g3ZUZLcHE0Zi9LcG9qZ01QK2pKRFJrT2xqVmxzZmQvS1dwVW9nejYyeUUKUncrdFVqcklzSjlrCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    server: https://602AF50069BAE4877F2C7E0E9F44B0D3.gr7.ap-south-1.eks.amazonaws.com
+  name: arn:aws:eks:ap-south-1:905418014070:cluster/my-eks-cluster
+contexts:
+- context:
+    cluster: arn:aws:eks:ap-south-1:905418014070:cluster/my-eks-cluster
+    user: arn:aws:eks:ap-south-1:905418014070:cluster/my-eks-cluster
+  name: arn:aws:eks:ap-south-1:905418014070:cluster/my-eks-cluster
+current-context: arn:aws:eks:ap-south-1:905418014070:cluster/my-eks-cluster
+kind: Config
+preferences: {}
+users:
+- name: admin
+  user:
+    token: eyJhbGciOiJSUzI1NiIsImtpZCI6ImUxNjFiNjgxMmYyMGI4YjliY2UzMmIyMzM0MTA3NTI4YzcwMjkxMzEifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTczNDE1MTg4NywiaWF0IjoxNzM0MTQ4Mjg3LCJpc3MiOiJodHRwczovL29pZGMuZWtzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9pZC82MDJBRjUwMDY5QkFFNDg3N0YyQzdFMEU5RjQ0QjBEMyIsImp0aSI6IjY2NjM4ZmJhLTA3NmItNDZlNS1hYmI2LTgwNzM2MjM5MTlkOSIsImt1YmVybmV0ZXMuaW8iOnsibmFtZXNwYWNlIjoiZGVmYXVsdCIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJhZG1pbiIsInVpZCI6ImRlNTFhNmQxLWE0ZGQtNDgxMC1hNDkwLTM3M2FmY2FmMDY5YiJ9fSwibmJmIjoxNzM0MTQ4Mjg3LCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDphZG1pbiJ9.NGDGYunIEYulnYeI7Ud6ypk56il3sOYbrfYGwEpvl08Ft5gRpBRjSDM9BkxrIkQxdJPcAFEmTgNYWHDCZJXgLcBYx-TbjehOaNWYBfp6dTOw1QdSHHIwIrSUV9z1QIugUBqfE-LbawOtRarwzoIq1JqLW4C1q8F7S1YOX_m8jNSRVC012rwKaJP5M3SyIQUA
