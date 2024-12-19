@@ -1,0 +1,36 @@
+Terraform Workspace:
+
+Terraform workspaces allow you to manage multiple environments (like dev, staging, and production) using the same configuration files. Each workspace has its own state file, which helps keep environments isolated from each other.
+
+Here are some key commands for managing Terraform workspaces:
+1. Create a new workspace:
+
+terraform workspace new <workspace_name>
+This command creates a new workspace with the specified name.
+
+2. List all workspaces:
+
+terraform workspace list
+This command lists all available workspaces. The current workspace will be marked with an asterisk (*).
+
+3. Select a workspace:
+terraform workspace select <workspace_name>
+
+This command switches to the specified workspace.
+
+4. Show the current workspace:
+
+terraform workspace show
+This command displays the name of the current workspace.
+
+5. Delete a workspace:
+
+terraform workspace delete <workspace_name>
+This command deletes the specified workspace. Note that you cannot delete the current workspace; you must switch to a different one first.
+
+Best Practices for Maintaining Workspaces
+Consistent Naming: Use consistent naming conventions for your workspaces to avoid confusion.
+Automation: Integrate workspace commands into your CI/CD pipelines to ensure the correct workspace is used during deployments.
+State Management: Regularly back up your state files and use remote state storage (like Terraform Cloud or an S3 bucket) to avoid losing state data. 
+
+
