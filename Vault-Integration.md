@@ -143,3 +143,55 @@ vault write -f auth/approle/role/my-approle/secret-id
    ```
 
 This command generates a Secret ID and provides it in the response. Save the Secret ID securely, as it will be used for Terraform authentication.
+
+
+Terraform Example:
+
+```
+provider "aws" {
+  region = "ap-south-1"
+}
+
+provider "vault" {
+  address = "http://13.233.246.167:8200"
+  skip_child_token = true
+
+  auth_login {
+    path = "auth/approle/login"
+
+    parameters = {
+      role_id = "f8aff2a8-6a2e-542a-643c-5b5965397719"
+      secret_id = "60ee9b0c-9e07-c11a-b91e-0bef68400c3f"
+    }
+  }
+}
+
+data "vault_kv_secret_v2" "example" {
+  mount = "kv" // change it according to your mount
+  name  = "test-secret" // change it according to your secret
+}
+
+resource "aws_instance" "my_instance" {
+  ami           = "ami-053b12d3152c0cc71"
+  instance_type = "t2.micro"
+
+
+  tags = {
+    POC = "test"
+    Name = data.vault_kv_secret_v2.example.data["Name"]
+    technical-owner = data.vault_kv_secret_v2.example.data["technical-owner"]
+  }
+}
+
+resource "aws_instance" "my_instance-2" {
+  ami           = "ami-053b12d3152c0cc71"
+  instance_type = "t2.micro"
+
+
+  tags = {
+    POC = "test"
+    Name = data.vault_kv_secret_v2.example.data["Name"]
+    technical-owner = data.vault_kv_secret_v2.example.data["technical-owner"]
+  }
+}
+```
