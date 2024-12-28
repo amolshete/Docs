@@ -34,3 +34,149 @@ Automation: Integrate workspace commands into your CI/CD pipelines to ensure the
 State Management: Regularly back up your state files and use remote state storage (like Terraform Cloud or an S3 bucket) to avoid losing state data. 
 
 
+
+terraform script
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+# variable "instance_count" {
+#   type        = string
+#   description = "Instance Count"
+#   validation {
+#     condition     = var.instance_count > 0 && var.instance_count < 6 
+#     error_message = "Count has to be in between 1 to 5"
+#   }
+# }
+
+# resource "aws_instance" "webapp" {
+#   ami           = "ami-053b12d3152c0cc71"
+#   instance_type = "t2.micro"
+#   key_name = "demo-linux-21th-july"
+#   count = var.instance_count
+
+#   tags = {
+#     Name = "HelloWorld"
+#   }
+# }
+
+# #export TF_LOG=DEBUG
+
+
+
+# # Variable with validation block
+# variable "environment" {
+#   type        = string
+#   description = "Environment type"
+#   validation {
+#     condition     = contains(["dev", "staging", "prod"], var.environment)
+#     error_message = "Environment must be one of dev, staging, or prod."
+#   }
+# }
+
+# # Example usage of the validated variable
+# resource "aws_s3_bucket" "example" {
+#   bucket_prefix = "${var.environment}-example-bucket"
+#   acl           = "private"
+# }
+
+# output "bucket_name" {
+#   value = aws_s3_bucket.example.bucket_prefix
+# }
+
+# variable "create_instance" {
+#   type    = bool
+#   default = true
+# }
+
+# resource "aws_instance" "example" {
+#   count         = var.create_instance ? 1 : 0
+#   ami           = "ami-053b12d3152c0cc71"  # Replace with a valid AMI ID
+#   instance_type = "t2.micro"
+
+#   tags = {
+#     Name = "conditional-instance"
+#   }
+# }
+
+
+
+# variable "instance_type" {
+#   type    = list(string)
+#   default = ["t2.micro", "t2.medium"]
+# }
+
+# resource "aws_instance" "example" {
+#   count         = length(instance_type)
+#   ami           = "ami-053b12d3152c0cc71"  # Replace with a valid AMI ID
+#   instance_type = "t2.micro"
+
+#   #availability_zone = "${var.regions[count.index]}a"
+
+#   tags = {
+#     Name = "instance-${var.instance_type[count.index]}"
+#   }
+# }
+
+
+#dynamic simple example
+
+
+# variable "instances" {
+#   default = {
+#     instance_1 = "t2.micro"
+#     instance_2 = "t2.small"
+#   }
+# }
+
+# resource "aws_instance" "webapp" {
+#   for_each = var.instances
+#   ami           = "ami-053b12d3152c0cc71"
+#   key_name = "demo-linux-21th-july"
+#   instance_type = each.value
+#   tags = {
+#     Name = each.key
+#   }
+# }
+
+#dynamic complex example
+
+variable "regions" { 
+  type = list(string)
+  default = ["us-east-1", "ap-south-1"]
+}
+
+variable "instance_types" {
+  type = map(string)
+  default = {
+    "us-east-1" = "t2.micro"
+    "ap-south-1" = "t2.small"
+  }
+}
+
+resource "aws_instance" "instances" {
+  for_each = toset(var.regions)
+
+  ami               = data.aws_ami.latest_ami[each.key].id
+  instance_type     = var.instance_types[each.key]
+  availability_zone = "${each.key}a"
+
+  tags = {
+    Name = "instance-${each.key}"
+  }
+}
+
+data "aws_ami" "latest_ami" {
+  for_each = toset(var.regions)
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*"]
+  }
+
+  owners = ["amazon"]
+}
+
