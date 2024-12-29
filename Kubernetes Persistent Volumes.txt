@@ -1,0 +1,78 @@
+Kubernetes uses Persistent Volumes (PVs) and Persistent Volume Claims (PVCs) to manage persistent storage. PVs are storage resources in the cluster, and PVCs are requests for those resources by applications.
+
+On Amazon EKS, the underlying storage is often backed by AWS services like Elastic Block Store (EBS) or S3.
+
+
+Example: Using an EBS-backed Persistent Volume
+
+1. Create a StorageClass
+Define a StorageClass to dynamically provision EBS volumes.
+
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+  fsType: ext4
+2. Create a Persistent Volume Claim (PVC)
+
+Request storage for your application.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ebs-sc
+
+3. Deploy an Application Using the PVC
+Attach the PVC to a Pod for persistent storage.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: html-storage
+      volumes:
+      - name: html-storage
+        persistentVolumeClaim:
+          claimName: ebs-pvc
+
+4. Verify the Setup:
+Check the PVC status:
+
+kubectl get pvc
+kubectl describe pod <pod-name>
+
+
+If in case EBS driver is not installed you can install it by using below command.
+
+helm install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver \
+  --namespace kube-system \
+  --set image.repository=602401143452.dkr.ecr.<your-region>.amazonaws.com/eks/aws-ebs-csi-driver \
+  --set controller.serviceAccount.create=false \
+  --set controller.serviceAccount.name=ebs-csi-controller-sa
+
+
