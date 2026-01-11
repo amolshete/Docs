@@ -1,0 +1,28 @@
+IMDSv2 (Recommended & Default)
+
+Most AWS accounts require IMDSv2, which uses a session token.
+
+
+Step 1: Get IMDSv2 token
+
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+Step 2: Use the token to fetch metadata
+
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/instance-id
+
+Availability Zone
+
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+http://169.254.169.254/latest/meta-data/placement/availability-zone
+
+
+Private IP
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+http://169.254.169.254/latest/meta-data/local-ipv4
+
+Public IP
+
+curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+http://169.254.169.254/latest/meta-data/public-ipv4
